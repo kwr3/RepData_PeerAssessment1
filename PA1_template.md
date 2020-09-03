@@ -8,18 +8,15 @@ output:
     toc: yes
 ---
 
-```{r global-options, include = FALSE}
 
-knitr::opts_chunk$set(fig.width=6, fig.height=3, dpi= 800,
-                      echo=TRUE, warning=FALSE, message=FALSE)
-```
 
 
 
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 library(tidyverse)
 library(lubridate)
 
@@ -27,7 +24,6 @@ data <-  read.csv("activity.csv") %>%
   as_tibble %>% 
   mutate(date = ymd(date)) %>%
   relocate(date, interval, steps)
-
 ```
 
 ## What is mean total number of steps taken per day?
@@ -37,8 +33,8 @@ I will use the sum function to make things more clear. The logic is to sum the
 number of steps taken in all the days then divide by the total number of days. 
 We can arrive at the solution quicker than the code below. But to help others I 
 will go about it in a more traditional,slightly longer approach.
-```{r}
 
+```r
 #if you look at the dataset, there are some days which do not have ANY
 #data at all! For example, we see that the first day of every month is nothing
 #but ENTIRELY NA values. Thus these days shouldn't count in the mean
@@ -91,8 +87,9 @@ ggplot(data = grouped, aes(x = sum_daily_steps)) +
     geom_vline(mapping = aes(xintercept = med), color = "green", size = 1) +
     geom_label(label = "Average = 10766 (black)\nMedian = 10765 (green)", 
                y = 15, x = 14500)
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 We see that the average and median is roughly in the center of the histogram.
 The key here was knowing how to handle missing values.
 
@@ -101,7 +98,8 @@ and plot it as an annotation on the graph.
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 int_grouped <- data %>%  group_by(interval) %>%
   summarise(meanint = mean(steps, na.rm = TRUE))
 
@@ -118,6 +116,8 @@ ggplot(data = int_grouped) +
        title = "Time Series of Mean Steps vs 5 minute Interval")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
 The max interval is clearly 835.
 
 There are many ways to imput missing data, here we use a more complicated
@@ -126,7 +126,8 @@ mean matching.
 
 ## Imputing missing values
 
-```{r, results = FALSE}
+
+```r
 library(mice)
 
 #need to know how many missing values there are
@@ -136,7 +137,11 @@ nacount <- sum(is.na(data$steps))
 
 #we can also see it with md.pattern from mice package
 md.pattern(data)
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
 #the assignment said not to get complicated... but nah, I want to make it 
 #complicated. Let's imput the missing values using the Multiple Imputation
 #by Chained Equations algorithm (MICE)
@@ -163,6 +168,8 @@ ggplot(data = grouped_complete) +
   geom_label(label = "Avg = 11440\nMed = 11352", x = 14500, y = 17)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+
 We can see that the average and mean are higher due to imputation.
 
 
@@ -170,8 +177,8 @@ For this next part we make a simple function called map_it to make the factor
 variables.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r}
 
+```r
 #Simple
 map_it <- function(x){
   week_end <- c("Saturday", "Sunday")
@@ -191,6 +198,7 @@ ggplot(data = weekday_df) +
     strip.text.x = element_text(size = 12, color = "white", face = "bold"),
     strip.background = element_rect(color = "black", fill = "orange")
   )
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 Here we can clearly see that people are lazy on weekends.
